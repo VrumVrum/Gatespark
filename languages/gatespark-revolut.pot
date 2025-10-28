@@ -1,0 +1,72 @@
+# GateSpark - Smart Revolut Gateway
+# Copyright (C) 2025 GateSpark
+# This file is distributed under the same license as the GateSpark package.
+msgid ""
+msgstr ""
+"Project-Id-Version: GateSpark 1.0.0\n"
+"Report-Msgid-Bugs-To: support@gatespark.com\n"
+"POT-Creation-Date: 2025-01-01 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: gatespark-revolut.php
+msgid "GateSpark requires WooCommerce to be installed and activated."
+msgstr ""
+
+#: includes/class-gatespark-gateway.php
+msgid "GateSpark - Revolut"
+msgstr ""
+
+msgid "Accept card payments via Revolut with built-in analytics and modern 2025 UI."
+msgstr ""
+
+msgid "Credit/Debit Card"
+msgstr ""
+
+msgid "Pay securely with your credit or debit card via Revolut."
+msgstr ""
+
+#: includes/class-gatespark-reports.php
+msgid "GateSpark Reports"
+msgstr ""
+
+msgid "Beautiful analytics for your Revolut payments"
+msgstr ""
+
+msgid "Last 7 Days"
+msgstr ""
+
+msgid "Last 30 Days"
+msgstr ""
+
+msgid "Total Revenue"
+msgstr ""
+
+msgid "Transactions"
+msgstr ""
+
+msgid "Success Rate"
+msgstr ""
+
+msgid "Avg Order Value"
+msgstr ""
+
+msgid "Revenue Over Time"
+msgstr ""
+
+msgid "Recent Transactions"
+msgstr ""
+
+msgid "Export CSV"
+msgstr ""
+
+msgid "Want More Insights?"
+msgstr ""
+
+msgid "Upgrade to PRO - $99/year →"
+msgstr ""
