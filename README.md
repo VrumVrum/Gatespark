@@ -1,2 +1,0 @@
-# Gatespark
-Gatespark rev plugin
