@@ -28,20 +28,20 @@ class GateSpark_Webhooks {
     }
 
 
-/**
- * Register REST routes
- */
-public function register_rest_routes() {
-    register_rest_route(
-        'gatespark/v1',
-        '/webhook',
-        array(
-            'methods'  => 'POST',
-            'callback' => array($this, 'handle_rest_webhook'),
-            'permission_callback' => '__return_true',
-        )
-    );
-}
+    /**
+     * Register REST routes
+     */
+    public function register_rest_routes() {
+        register_rest_route(
+            'gatespark/v1',
+            '/webhook',
+            array(
+                'methods'  => 'POST',
+                'callback' => array($this, 'handle_rest_webhook'),
+                'permission_callback' => '__return_true',
+            )
+        );
+    }
 
     
     /**
@@ -58,69 +58,94 @@ public function register_rest_routes() {
         }
         
         
-        // Process webhook
-        
+        $result = $this->process_webhook($data);
+
+        if (is_wp_error($result)) {
+            $this->log('Webhook processing failed', $result->get_error_message());
+            status_header(400);
+            echo wp_json_encode(
+                array(
+                    'success' => false,
+                    'message' => $result->get_error_message(),
+                )
+            );
+            exit;
+        }
+
         status_header(200);
+        echo wp_json_encode(
+            array(
+                'success' => true,
+                'message' => __('Webhook processed successfully', 'gatespark-revolut'),
+            )
+        );
         exit;
     }
-    
     /**
      * Handle REST API webhook
      */
-    
-public function handle_rest_webhook( $request ) {
-    // Basic rate limiting by IP
-    $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown';
-    $key = 'gatespark_webhook_rate_' . md5($ip);
-    $limit = 10; // max requests per minute per IP
-    $window = 60; // seconds
+    public function handle_rest_webhook($request) {
+        // Basic rate limiting by IP
+        $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown';
+        $key = 'gatespark_webhook_rate_' . md5($ip);
+        $limit = 10; // max requests per minute per IP
+        $window = 60; // seconds
 
-    $requests = get_transient($key);
-    if ($requests === false) { $requests = 0; }
-    if ($requests >= $limit) {
-        return new WP_Error('rate_limited', __('Too many webhook requests. Please try again later.', 'gatespark-revolut'), array('status' => 429));
-    }
-    set_transient($key, $requests + 1, $window);
+        $requests = get_transient($key);
+        if ($requests === false) {
+            $requests = 0;
+        }
+        if ($requests >= $limit) {
+            return new WP_Error(
+                'rate_limited',
+                __('Too many webhook requests. Please try again later.', 'gatespark-revolut'),
+                array('status' => 429)
+            );
+        }
+        set_transient($key, $requests + 1, $window);
 
-    $data = $request->get_json_params();
-    $payload = json_encode($data);
-    $signature = $request->get_header('X-Revolut-Signature');
+        $data = $request->get_json_params();
+        $payload = wp_json_encode($data);
+        $signature = $request->get_header('X-Revolut-Signature');
 
-    if (empty($data) || empty($signature)) {
-        return new WP_Error('invalid_webhook', __('Missing payload or signature', 'gatespark-revolut'), array('status' => 400));
-    }
+        if (empty($data) || empty($signature)) {
+            return new WP_Error(
+                'invalid_webhook',
+                __('Missing payload or signature', 'gatespark-revolut'),
+                array('status' => 400)
+            );
+        }
 
-    // Verify HMAC signature via Gateway secret
-    if (!class_exists('GateSpark_Gateway')) {
-        return new WP_Error('gateway_missing', __('Payment gateway not loaded', 'gatespark-revolut'), array('status' => 500));
-    }
-    $gateway = new GateSpark_Gateway();
-    if (!method_exists($gateway, 'verify_webhook_signature') || !$gateway->verify_webhook_signature($payload, $signature)) {
-        return new WP_Error('invalid_signature', __('Invalid signature', 'gatespark-revolut'), array('status' => 401));
-    }
+        // Verify HMAC signature via Gateway secret
+        if (!class_exists('GateSpark_Gateway')) {
+            return new WP_Error(
+                'gateway_missing',
+                __('Payment gateway not loaded', 'gatespark-revolut'),
+                array('status' => 500)
+            );
+        }
 
+        $gateway = new GateSpark_Gateway();
+        if (!method_exists($gateway, 'verify_webhook_signature') || !$gateway->verify_webhook_signature($payload, $signature)) {
+            return new WP_Error(
+                'invalid_signature',
+                __('Invalid signature', 'gatespark-revolut'),
+                array('status' => 401)
+            );
+        }
 
-    $result = $this->process_webhook($data);
-    if (is_wp_error($result)) {
-        return $result;
-    }
-
-    return new WP_REST_Response(array('ok' => true), 200);
-}
-
-        
-        
-        // Process webhook
         $result = $this->process_webhook($data);
-        
         if (is_wp_error($result)) {
             return $result;
         }
-        
-        return rest_ensure_response(array(
-            'success' => true,
-            'message' => __('Webhook processed successfully', 'gatespark-revolut')
-        ));
+
+        return new WP_REST_Response(
+            array(
+                'success' => true,
+                'message' => __('Webhook processed successfully', 'gatespark-revolut'),
+            ),
+            200
+        );
     }
     
     /**
